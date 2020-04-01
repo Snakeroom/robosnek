@@ -117,3 +117,6 @@ dist
 #Intellij
 *.iml
 .idea/
+
+### Snakeroom Stuff
+user-first-messages.json
