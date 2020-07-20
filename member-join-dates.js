@@ -1,16 +1,11 @@
-'use strict';
-
-
-const guildMemberJoin = 'GUILD_MEMBER_JOIN';
+"use strict";
 
 const memberJoinDates = new Map();
 
-const updateMemberJoinDate = (message) => {
+const updateMemberJoinDate = message => {
 	let memberID;
 	// TODO: Actually add reading Dyno's Join notifs
-	if (message.author === 'DYNO') {
-
-	} else {
+	if (message.author !== "DYNO") {
 		const member = message.channel.guild.member(message.author);
 		if (member) {
 			memberID = member.id;
@@ -21,23 +16,27 @@ const updateMemberJoinDate = (message) => {
 					memberJoinDates.set(memberID, newMessageTimestamp);
 				}
 			} else {
-				memberJoinDates.set(memberID, newMessageTimestamp)
+				memberJoinDates.set(memberID, newMessageTimestamp);
 			}
 		}
 	}
 };
 
-const updateAllMemberJoinDates = async (channel, searchBeforeMessage=null) => {
-	if (searchBeforeMessage===null) {
-		const listOfOneMessage = await channel.messages.fetch({limit: 1});
+const updateAllMemberJoinDates = async (channel, searchBeforeMessage = null) => {
+	if (searchBeforeMessage === null) {
+		const listOfOneMessage = await channel.messages.fetch({ limit: 1 });
 		if (listOfOneMessage.size > 0) {
 			updateMemberJoinDate(listOfOneMessage.last());
 			return updateAllMemberJoinDates(channel, listOfOneMessage.last());
 		}
 	} else {
-		let nextMessageBatch = await channel.messages.fetch({limit: 100, before: searchBeforeMessage.id});
+		let nextMessageBatch = await channel.messages.fetch({
+			before: searchBeforeMessage.id,
+			limit: 100,
+		});
 
 		if (nextMessageBatch.size > 0) {
+			/* eslint-disable-next-line no-unused-vars */
 			for (const [messageID, message] of nextMessageBatch) {
 				updateMemberJoinDate(message);
 			}
@@ -45,22 +44,22 @@ const updateAllMemberJoinDates = async (channel, searchBeforeMessage=null) => {
 			const earliestFetchedMessage = nextMessageBatch.last();
 			nextMessageBatch = null;
 
-			//console.log(earliestFetchedMessage.id);
 			return updateAllMemberJoinDates(channel, earliestFetchedMessage);
 		}
 	}
 };
 
-export const findAllMemberJoinDates = async (guild) => {
+export const findAllMemberJoinDates = async guild => {
 
 	guild.members.cache.each(member => {
 		memberJoinDates.set(member.id, member.joinedTimestamp);
 	});
 
-	const guildTextChannels = guild.channels.cache.filter(channel => channel.type === 'text');
+	const guildTextChannels = guild.channels.cache.filter(channel => channel.type === "text");
 
 
 	const memberJoinDatePromises = [];
+	/* eslint-disable-next-line no-unused-vars */
 	for (const [channelID, channel] of guildTextChannels) {
 		memberJoinDatePromises.push(updateAllMemberJoinDates(channel));
 	}
